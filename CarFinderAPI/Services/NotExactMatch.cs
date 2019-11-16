@@ -13,8 +13,6 @@ namespace CarFinderAPI.Services
     {
         private readonly ApplicationDbContext _context;
 
-
-
         public NotExactMatch(ApplicationDbContext context)
         {
             _context = context;
@@ -24,8 +22,9 @@ namespace CarFinderAPI.Services
         public IQueryable<Car> CheckForResult(CarRequest carRequest)
         {
             List<string> notNullProperties = new List<string>();
-            List<string> newRequestProperties = new List<string>();
+            List<string> newRequestProperties;
             int tryCount = 0;
+            IQueryable<Car> result;
 
             var type = typeof(CarRequest);
             var properties = type.GetTypeInfo().GetProperties();
@@ -37,30 +36,37 @@ namespace CarFinderAPI.Services
                 }
             }
 
+            newRequestProperties = new List<string>(notNullProperties);
+
+            for (int i = 0; i < newRequestProperties.Count; i++)
+            {
+                newRequestProperties.RemoveAt(i);
+                result = getResult(properties, carRequest, newRequestProperties);
+
+                if (result.Count() > 0)
+                    return result;
+
+                newRequestProperties = new List<string>(notNullProperties);
+            }
 
             newRequestProperties = new List<string>(notNullProperties);
 
-
-            while (newRequestProperties.Count > tryCount)
+            for (int i = 0; i < newRequestProperties.Count; i++)
             {
-                newRequestProperties.RemoveAt(tryCount);
-                var result = getResult(properties, carRequest, newRequestProperties);
-                
+                newRequestProperties.RemoveAt(i);
+                result = getResult(properties, carRequest, newRequestProperties);
+
                 if (result.Count() > 0)
                     return result;
-                
-                for (int i = 0; i < newRequestProperties.Count; i++)
-                {
-                    newRequestProperties.RemoveAt(i);
-                    result = getResult(properties, carRequest, newRequestProperties);
-
-                    if (result.Count() > 0)
-                        return result;
-                }
-
-                tryCount++;
-                newRequestProperties = new List<string>(notNullProperties);
             }
+
+            //Func<IQueryable<Car>> q = () =>
+            //{
+            //    result = getResult(properties, carRequest, newRequestProperties);
+
+            //    if (result.Count() > 0)
+            //        return result;
+            //};
 
             return defaultResult();
         }
