@@ -12,10 +12,8 @@ namespace CarFinderAPI.Services
     public class NotExactMatch
     {
         private readonly ApplicationDbContext _context;
-        private List<string> notNullProperties = new List<string>();
-        private List<string> newRequestProperties = new List<string>();
-        private int propNumber = 1;
-        private int tryCount = 0;
+
+
 
         public NotExactMatch(ApplicationDbContext context)
         {
@@ -25,6 +23,10 @@ namespace CarFinderAPI.Services
 
         public IQueryable<Car> CheckForResult(CarRequest carRequest)
         {
+            List<string> notNullProperties = new List<string>();
+            List<string> newRequestProperties = new List<string>();
+            int tryCount = 0;
+
             var type = typeof(CarRequest);
             var properties = type.GetTypeInfo().GetProperties();
             foreach (var property in properties)
@@ -36,23 +38,46 @@ namespace CarFinderAPI.Services
             }
 
 
-            newRequestProperties = notNullProperties;
-            generateList();
+            newRequestProperties = new List<string>(notNullProperties);
 
 
-            var result = getResult(properties, carRequest);
-
-            while (result.Count() == 0)
+            while (newRequestProperties.Count > tryCount)
             {
-                generateList();
-                result = getResult(properties, carRequest);
+                newRequestProperties.RemoveAt(tryCount);
+                var result = getResult(properties, carRequest, newRequestProperties);
+                
+                if (result.Count() > 0)
+                    return result;
+                
+                for (int i = 0; i < newRequestProperties.Count; i++)
+                {
+                    newRequestProperties.RemoveAt(i);
+                    result = getResult(properties, carRequest, newRequestProperties);
+
+                    if (result.Count() > 0)
+                        return result;
+                }
+
+                tryCount++;
+                newRequestProperties = new List<string>(notNullProperties);
             }
 
-            return result;
-
+            return defaultResult();
         }
 
-        private IQueryable<Car> getResult(PropertyInfo[] properties, CarRequest carRequest)
+        private IQueryable<Car> defaultResult()
+        {
+            var req = new CarRequest()
+            {
+                PriceFrom = 10
+            };
+            var predicate = CarPredicateBuilder.BuildPredicate(req);
+            var newResult = _context.Cars.Where(predicate);
+
+            return newResult;
+        }
+
+        private IQueryable<Car> getResult(PropertyInfo[] properties, CarRequest carRequest, List<string> newRequestProperties)
         {
             var newRequest = new CarRequest();
             foreach (var p in properties)
@@ -70,29 +95,5 @@ namespace CarFinderAPI.Services
             return newResult;
         }
 
-        private void generateList()
-        {
-            if (newRequestProperties.Count - 1 >= tryCount)
-            {
-                propNumber = newRequestProperties.Count - 1 - tryCount;
-            }
-            else
-            {
-            }
-
-            if (newRequestProperties.Count() == notNullProperties.Count())
-            {
-                newRequestProperties.RemoveAt(newRequestProperties.Count - propNumber);
-                tryCount += 1;
-            }
-            else if (newRequestProperties.Any())
-            {
-                newRequestProperties.RemoveAt(newRequestProperties.Count - 1);
-            }
-            else
-            {
-                newRequestProperties = notNullProperties;
-            }
-        }
     }
 }
