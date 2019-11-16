@@ -28,7 +28,7 @@ namespace CarFinderAPI.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet]
+        [HttpPost]
         public ActionResult<CarResponse> Get([FromBody] CarRequest carRequest)
         {
             var predicate = CarPredicateBuilder.BuildPredicate(carRequest);
@@ -44,7 +44,8 @@ namespace CarFinderAPI.Controllers
             }
 
             var type = typeof(CarRequest);
-            var x = type.GetProperties(BindingFlags.Public);
+            var propertyInfos = type.GetTypeInfo().GetProperties(BindingFlags.Public);
+            
 
             var alternativeSearch = true; //for test only
             if (alternativeSearch == true)
@@ -59,17 +60,17 @@ namespace CarFinderAPI.Controllers
             return NotFound();
         }
 
-        [HttpPost]
-        public ActionResult Post([FromBody] CarDto[] cars)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest();
-            }
-            _context.Cars.AddRange(cars.Select(_mapper.Map<CarDto, Car>));
-            _context.SaveChanges();
+        //[HttpPost]
+        //public ActionResult Post([FromBody] CarDto[] cars)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return BadRequest();
+        //    }
+        //    _context.Cars.AddRange(cars.Select(_mapper.Map<CarDto, Car>));
+        //    _context.SaveChanges();
 
-            return Ok();
-        }
+        //    return Ok();
+        //}
     }
 }
