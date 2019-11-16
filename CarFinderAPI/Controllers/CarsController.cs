@@ -7,6 +7,7 @@ using AutoMapper;
 using CarFinderAPI.Data;
 using CarFinderAPI.Dtos;
 using CarFinderAPI.Models;
+using CarFinderAPI.Services;
 using CarFinderAPI.Utilities;
 using LinqKit;
 using Microsoft.AspNetCore.Http;
@@ -21,11 +22,13 @@ namespace CarFinderAPI.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
+        private NotExactMatch _notExactMatch;
 
-        public CarsController(ApplicationDbContext context, IMapper mapper)
+        public CarsController(ApplicationDbContext context, IMapper mapper, NotExactMatch notExactMatch)
         {
             _context = context;
             _mapper = mapper;
+            _notExactMatch = notExactMatch;
         }
 
         [HttpPost]
@@ -43,17 +46,13 @@ namespace CarFinderAPI.Controllers
                 });
             }
 
-            var type = typeof(CarRequest);
-            var propertyInfos = type.GetTypeInfo().GetProperties(BindingFlags.Public);
-            
-
-            var alternativeSearch = true; //for test only
-            if (alternativeSearch == true)
+            var alternativeSearch = _notExactMatch.CheckForResult(carRequest); 
+            if (alternativeSearch.Any())
             {
                 return Ok(new CarResponse
                 {
                     ExactMatch = false,
-                    Cars = new List<CarDto>()
+                    Cars = alternativeSearch.ToList().Select(_mapper.Map<Car, CarDto>)
                 });
             }
 

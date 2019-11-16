@@ -6,6 +6,7 @@ using AutoMapper;
 using CarFinderAPI.Data;
 using CarFinderAPI.Mapping;
 using CarFinderAPI.Models;
+using CarFinderAPI.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -31,6 +32,7 @@ namespace CarFinderAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddAutoMapper(typeof(MappingProfile));
+            services.AddScoped<NotExactMatch>();
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
