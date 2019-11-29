@@ -1,10 +1,7 @@
 ﻿using CarFinderAPI.Models;
 using LinqKit;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 
 namespace CarFinderAPI.Utilities
 {
@@ -13,7 +10,7 @@ namespace CarFinderAPI.Utilities
         public static Expression<Func<Car, bool>> BuildPredicate(CarRequest carRequest)
         {
             var predicate = PredicateBuilder.New<Car>();
-            
+
             if (carRequest.BodyType != null)
             {
                 predicate.And(c => c.BodyType == carRequest.BodyType);
@@ -66,7 +63,7 @@ namespace CarFinderAPI.Utilities
             {
                 predicate.And(c => c.Transmission == carRequest.Transmission);
             }
-            
+
             return predicate;
         }
     }

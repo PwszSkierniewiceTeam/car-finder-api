@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace CarFinderAPI.Services
 {
@@ -16,7 +15,6 @@ namespace CarFinderAPI.Services
         public NotExactMatch(ApplicationDbContext context)
         {
             _context = context;
-
         }
 
         public IQueryable<Car> CheckForResult(CarRequest carRequest)
@@ -99,7 +97,6 @@ namespace CarFinderAPI.Services
 
             var predicate = CarPredicateBuilder.BuildPredicate(newRequest);
             var newResult = _context.Cars.Where(predicate);
-
 
             return newResult;
         }

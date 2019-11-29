@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using CarFinderAPI.Data;
 using CarFinderAPI.Dtos;
 using CarFinderAPI.Models;
 using CarFinderAPI.Services;
 using CarFinderAPI.Utilities;
-using LinqKit;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 
 namespace CarFinderAPI.Controllers
 {
@@ -46,7 +40,7 @@ namespace CarFinderAPI.Controllers
                 });
             }
 
-            var alternativeSearch = _notExactMatch.CheckForResult(carRequest); 
+            var alternativeSearch = _notExactMatch.CheckForResult(carRequest);
             if (alternativeSearch.Any())
             {
                 return Ok(new CarResponse
