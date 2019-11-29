@@ -49,11 +49,11 @@ namespace CarFinderAPI.Services
                     result = getResult(properties, carRequest, newState.NotNullProperties);
                     if (result.Any())
                     {
-                        cars.AddRange(result.ToList());
+                        cars.AddRange(result.Where(r => !cars.Contains(r)).ToList());
                     }
                 }
 
-                if (cars.Any())
+                if (cars.Any() && states.ElementAt(1).PrevState != state.PrevState)
                 {
                     return cars;
                 }
