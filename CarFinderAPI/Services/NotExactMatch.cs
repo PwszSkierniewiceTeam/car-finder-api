@@ -17,10 +17,11 @@ namespace CarFinderAPI.Services
             _context = context;
         }
 
-        public IQueryable<Car> CheckForResult(CarRequest carRequest)
+        public IEnumerable<Car> CheckForResult(CarRequest carRequest)
         {
             List<string> notNullProperties = new List<string>();
             IQueryable<Car> result;
+            List<Car> cars = new List<Car>();
 
             var type = typeof(CarRequest);
             var properties = type.GetTypeInfo().GetProperties();
@@ -44,17 +45,22 @@ namespace CarFinderAPI.Services
                     {
                         states.Add(newState);
                     }
+                    
+                    result = getResult(properties, carRequest, newState.NotNullProperties);
+                    if (result.Any())
+                    {
+                        cars.AddRange(result.ToList());
+                    }
                 }
+
+                if (cars.Any())
+                {
+                    return cars;
+                }
+
                 states.Remove(state);
                 state = states.First();
-
-                result = getResult(properties, carRequest, state.NotNullProperties);
-                if (result.Any())
-                {
-                    return result;
-                }
             }
-
             return defaultResult();
         }
 
