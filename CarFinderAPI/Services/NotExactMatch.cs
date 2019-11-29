@@ -22,8 +22,6 @@ namespace CarFinderAPI.Services
         public IQueryable<Car> CheckForResult(CarRequest carRequest)
         {
             List<string> notNullProperties = new List<string>();
-            List<string> newRequestProperties;
-            int tryCount = 0;
             IQueryable<Car> result;
 
             var type = typeof(CarRequest);
@@ -36,39 +34,44 @@ namespace CarFinderAPI.Services
                 }
             }
 
-            newRequestProperties = new List<string>(notNullProperties);
-
-            for (int i = 0; i < newRequestProperties.Count; i++)
+            var states = new List<State>();
+            states.Add(new State() { PrevState = null, NotNullProperties = notNullProperties });
+            var state = states.First();
+            while (state.NotNullProperties.Count > 0)
             {
-                newRequestProperties.RemoveAt(i);
-                result = getResult(properties, carRequest, newRequestProperties);
+                for (int i = 0; i < state.NotNullProperties.Count; i++)
+                {
+                    var newState = GenerateNewState(state, state.NotNullProperties.Where((property, index) => index != i).ToList());
+                    if (IsNewState(newState, states))
+                    {
+                        states.Add(newState);
+                    }
+                }
+                states.Remove(state);
+                state = states.First();
 
-                if (result.Count() > 0)
+                result = getResult(properties, carRequest, state.NotNullProperties);
+                if (result.Any())
+                {
                     return result;
-
-                newRequestProperties = new List<string>(notNullProperties);
+                }
             }
-
-            newRequestProperties = new List<string>(notNullProperties);
-
-            for (int i = 0; i < newRequestProperties.Count; i++)
-            {
-                newRequestProperties.RemoveAt(i);
-                result = getResult(properties, carRequest, newRequestProperties);
-
-                if (result.Count() > 0)
-                    return result;
-            }
-
-            //Func<IQueryable<Car>> q = () =>
-            //{
-            //    result = getResult(properties, carRequest, newRequestProperties);
-
-            //    if (result.Count() > 0)
-            //        return result;
-            //};
 
             return defaultResult();
+        }
+
+        private bool IsNewState(State newState, List<State> states)
+        {
+            if (states.Any(s => s.NotNullProperties.OrderBy(i => i).SequenceEqual(newState.NotNullProperties.OrderBy(i => i))))
+            {
+                return false;
+            }
+            return true;
+        }
+
+        private State GenerateNewState(State state, List<string> list)
+        {
+            return new State() { PrevState = state, NotNullProperties = list };
         }
 
         private IQueryable<Car> defaultResult()
@@ -101,5 +104,10 @@ namespace CarFinderAPI.Services
             return newResult;
         }
 
+        private class State
+        {
+            public State PrevState { get; set; }
+            public List<string> NotNullProperties { get; set; }
+        }
     }
 }
